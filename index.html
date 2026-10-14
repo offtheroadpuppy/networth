@@ -24,6 +24,9 @@
     <title>Над златом чахнешь | v3</title>
     <link rel="stylesheet" href="styles.css">
     <script src="chart.umd.js"></script> <!-- FROM:  https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js -->
+    <!-- ДОБАВИТЬ: Плагин для отображения текста и процентов поверх графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
 </head>
 <body>
 
@@ -110,78 +113,84 @@
         <!-- ВКЛАДКА 2: Аналитика (Сводные и Несколько графиков) -->
         <section id="pivot-tab" class="tab-content">
             <div class="analytics-layout">
-                <div class="pivot-sidebar card">
-                    <h4>Конструктор отчета</h4>
-                    <div class="form-group">
-                        <label>Строки (Уровень 1):</label>
-                        <select id="pivot-row-1">
-                            <option value="type">Тип актива</option>
-                            <option value="org">Организация</option>
-                            <option value="date">Дата</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Подстроки (Уровень 2):</label>
-                        <select id="pivot-row-2">
-                            <option value="none">-- Нет --</option>
-                            <option value="type">Тип актива</option>
-                            <option value="org">Организация</option>
-                            <option value="currency">Валюта</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Фильтр по дате (для Сводной):</label>
-                        <select id="pivot-filter-date"></select>
-                    </div>
-
-                    <h4 style="margin-top:20px; margin-bottom:10px;">Добавить график</h4>
-                    <div class="form-group">
-                        <label>Что анализируем:</label>
-                        <select id="new-chart-source">
-                            <option value="type">Структура по типам активов</option>
-                            <option value="org">Структура по организациям</option>
-                            <option value="trend">Исторический тренд (по месяцам)</option>
-                        </select>
-                    </div>
-                    <!-- NEW: Time Period Selector for Charts -->
-                    <div class="form-group">
-                        <label>Период времени:</label>
-                        <select id="new-chart-period">
-                            <option value="ALL">За все время</option>
-                            <option value="3">Последние 3 месяца</option>
-                            <option value="6">Последние 6 месяцев</option>
-                            <option value="12">Последний 1 год</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Вид виджета:</label>
-                        <select id="new-chart-type">
-                            <option value="bar">Столбчатая диаграмма</option>
-                            <option value="pie">Круговая диаграмма</option>
-                            <option value="line">Линейный график тренда</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary btn-sm w-100" id="add-chart-btn">➕ Добавить на панель</button>
+              <!-- ГЛАВНАЯ АНАЛИТИЧЕСКАЯ ИНТЕРАКТИВНАЯ СЕТКА -->
+              <div class="analytics-main">
+                <div class="dashboard-grid" id="dashboard-grid-container">
+                    <!-- Виджеты (Сводная таблица и графики) теперь генерируются, перемещаются и масштабируются динамически через JS -->
                 </div>
+              </div>
+            </div>
 
-                <div class="analytics-main">
-                    <div class="card">
-                        <h4>Сводная таблица (в <span class="base-currency-label">RUB</span>)</h4>
-                        <div class="table-wrapper">
-                            <table id="pivot-table">
-                                <thead>
-                                    <tr id="pivot-headers"></tr>
-                                </thead>
-                                <tbody id="pivot-rows"></tbody>
-                            </table>
-                        </div>
-                    </div>
+            <!-- ЛЕВЫЙ БЛОК УПРАВЛЕНИЯ (Теперь это два независимых сворачиваемых модуля) -->
+            <div class="analytics-controls">
+              <!-- БЛОК 1: Конструктор Сводной Таблицы -->
+              <div class="accordion-card">
+                  <button class="accordion-trigger" onclick="toggleAccordion('acc-pivot')">
+                      <span>🎛️ Конструктор сводной таблицы</span>
+                      <span class="acc-arrow" id="arrow-acc-pivot">▼</span>
+                  </button>
+                  <div class="accordion-content" id="acc-pivot">
+                      <div class="form-group">
+                          <label>Строки (Уровень 1):</label>
+                          <select id="pivot-row-1">
+                              <option value="type">Тип актива</option>
+                              <option value="org">Организация</option>
+                              <option value="date">Дата</option>
+                          </select>
+                      </div>
+                      <div class="form-group">
+                          <label>Подстроки (Уровень 2):</label>
+                          <select id="pivot-row-2">
+                              <option value="none">-- Нет --</option>
+                              <option value="type">Тип актива</option>
+                              <option value="org">Организация</option>
+                              <option value="currency">Валюта</option>
+                          </select>
+                      </div>
+                      <div class="form-group">
+                          <label>Фильтр по дате (для Сводной):</label>
+                          <select id="pivot-filter-date"></select>
+                      </div>
+                  </div>
+              </div>
 
-                    <!-- СЕТКА ДИНАМИЧЕСКИХ ГРАФИКОВ -->
-                    <div class="charts-dashboard-grid" id="charts-container">
-                        <!-- Графики рендерятся скриптом динамически -->
-                    </div>
-                </div>
+              <!-- БЛОК 2: Добавление нового графика -->
+              <div class="accordion-card">
+                  <button class="accordion-trigger" onclick="toggleAccordion('acc-charts')">
+                      <span>➕ Добавить новый график</span>
+                      <span class="acc-arrow" id="arrow-acc-charts">▼</span>
+                  </button>
+                  <div class="accordion-content" id="acc-charts">
+                      <div class="form-group">
+                          <label>Что анализируем:</label>
+                          <select id="new-chart-source">
+                              <option value="type">Структура по типам активов</option>
+                              <option value="org">Структура по организациям</option>
+                              <option value="trend">Исторический тренд (по месяцам)</option>
+                          </select>
+                      </div>
+                      <div class="form-group">
+                          <label>Временной фильтр / Выбор среза:</label>
+                          <select id="new-chart-period">
+                              <option value="LAST_SLICE">Только последний срез (актуально)</option>
+                              <option value="ALL">За все время (история)</option>
+                              <option value="3">Последние 3 месяца</option>
+                              <option value="6">Последние 6 месяцев</option>
+                              <option value="12">Последний 1 год</option>
+                          </select>
+                      </div>
+                      <div class="form-group">
+                          <label>Вид виджета:</label>
+                          <select id="new-chart-type">
+                              <option value="bar">Столбчатая диаграмма</option>
+                              <option value="pie">Круговая диаграмма</option>
+                              <option value="line">Линейный график тренда</option>
+                          </select>
+                      </div>
+                      <button class="btn btn-primary btn-sm w-100" id="add-chart-btn" style="margin-top: 10px;">Генерировать график</button>
+                  </div>
+              </div>
+
             </div>
         </section>
 
@@ -242,6 +251,24 @@
             </div>
         </section>
     </main>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ДЛЯ ВЫБОРА ДАТЫ КОПИРОВАНИЯ СРЕЗА -->
+<div id="slice-modal" class="auth-overlay">
+    <div class="auth-card" style="max-width: 340px;">
+        <h3>Копирование среза</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+            Будут скопированы все записи из последнего среза от <span id="modal-last-date" style="font-weight:bold; color:var(--text);">--.--.----</span>
+        </p>
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="modal-target-date">Целевая дата нового среза:</label>
+            <input type="date" id="modal-target-date" required>
+        </div>
+        <div class="form-actions" style="justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeSliceModal()">Отмена</button>
+            <button type="button" class="btn btn-success" id="confirm-copy-btn">Продолжить</button>
+        </div>
+    </div>
 </div>
 
 <!-- ЭКРАН АВТОРИЗАЦИИ (Блокирует интерфейс до входа) -->

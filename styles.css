@@ -15,16 +15,17 @@ body { background: var(--bg); color: var(--text); padding: 10px; font-size: 15px
 
 html, body {
     max-width: 100%;
-    overflow-x: hidden; /* Жестко блокирует появление боковой прокрутки сайта */
+    overflow-x: hidden; /* Блокирует фантомные белые полосы и прокрутку вбок */
     position: relative;
+    width: 100%;
 }
+
 .app-container {
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
-    overflow-x: hidden; /* Изолирует содержимое приложения внутри контейнера */
+    overflow-x: hidden;
 }
-
 
 
 header {
@@ -76,12 +77,22 @@ header h1 {
 
 /* Зона свайпов */
 .swipe-zone {
-    display: flex;
-    width: 300%;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 300% !important; /* На мобильных это значение ДОЛЖНО быть 300% */
     transition: transform 0.3s ease-out;
     align-items: flex-start;
 }
-.tab-content { width: 33.333%; padding: 0 5px; display: none; }
+
+/* Каждая вкладка на телефоне — это ровно треть от 300% общей ленты (то есть 100% экрана) */
+.tab-content {
+    width: 33.3333% !important;
+    max-width: 33.3333% !important;
+    padding: 0 8px;
+    box-sizing: border-box;
+    display: block !important; /* Убираем display: none, иначе свайп-лента ломается на смартфонах */
+}
 .tab-content.active { display: block; }
 
 /* Карточки */
@@ -105,16 +116,62 @@ input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px 
 
 /* Таблицы */
 .table-header-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
-.table-wrapper { overflow-x: auto; background: var(--card); border-radius: 8px; border: 1px solid var(--border); }
-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; min-width: 600px; }
-th, td { padding: 12px; border-bottom: 1px solid var(--border); }
-th { background: #f8fafc; font-weight: 600; color: var(--text-muted); }
-tr.sub-row { background: #f8fafc; font-size: 13px; }
-tr.sub-row td:first-child { padding-left: 30px; color: var(--text-muted); }
-.text-center { text-align: center; }
+/* --- СВЕРХКОМПАКТНЫЕ И СЖАТЫЕ ТАБЛИЦЫ --- */
+.table-wrapper {
+    overflow-x: auto;
+    background: var(--card);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px; /* Слегка уменьшили базовый шрифт для плотности данных */
+    min-width: 100%; /* Убрали жесткое ограничение в 600px, чтобы таблица могла сжиматься */
+    table-layout: auto;
+}
+
+th, td {
+    padding: 8px 10px; /* Ужали вертикальные отступы с 12px до 8px, а горизонтальные до 10px */
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap; /* Запрещаем перенос слов, чтобы строки оставались аккуратными */
+}
+
+th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* Оптимизация ширины под конкретный контент, чтобы убрать пустое место */
+table td:nth-child(1), table th:nth-child(1) { width: 15%; } /* Дата */
+table td:nth-child(2), table th:nth-child(2) { width: 20%; } /* Тип актива */
+table td:nth-child(3), table th:nth-child(3) { width: 20%; } /* Организация */
+table td:nth-child(4), table th:nth-child(4) { width: 15%; text-align: right; } /* Сумма */
+table td:nth-child(5), table th:th-child(5) { width: 10%; text-align: center; } /* Валюта */
+table td:nth-child(6), table th:nth-child(6) { width: 15%; text-align: right; } /* В базовой */
+
+tr.sub-row {
+    background: #f8fafc;
+    font-size: 12px;
+}
+
+tr.sub-row td:first-child {
+    padding-left: 20px;
+    color: var(--text-muted);
+}
+
+.text-center {
+    text-align: center;
+}
+
+
 
 /* Аналитика макет */
-.analytics-layout { display: grid; grid-template-columns: 280px 1fr; gap: 15px; }
 .chart-container { position: relative; height: 320px; width: 100%; }
 
 /* Настройки */
@@ -130,8 +187,28 @@ tr.sub-row td:first-child { padding-left: 30px; color: var(--text-muted); }
 @media (max-width: 600px) {
     body { padding: 5px; }
     .card { padding: 12px; }
-    th, td { padding: 8px; font-size: 13px; }
     .tab-btn { padding: 8px 4px; font-size: 13px; }
+
+    table {
+        font-size: 12px; /* Максимально компактный читаемый шрифт на телефонах */
+    }
+
+    th, td {
+        padding: 6px 6px; /* Минимальные отступы для экономии каждого пикселя экрана */
+    }
+
+    /* Делаем кнопки действий ✏️ и 🗑️ компактными круглыми иконками на мобильных */
+    table .btn {
+        padding: 4px 6px !important;
+        font-size: 11px !important;
+        line-height: 1;
+        margin: 0 1px;
+    }
+
+    /* Сокращаем отступ древовидной подстроки в сводной таблице */
+    tr.sub-row td:first-child {
+        padding-left: 12px;
+    }
 }
 @media (max-width: 400px) {
   header h1 {
@@ -148,7 +225,7 @@ tr.sub-row td:first-child { padding-left: 30px; color: var(--text-muted); }
 /* --- АДАПТИВНЫЙ МАКЕТ АНАЛИТИКИ (Исправление вылетов) --- */
 .analytics-layout {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    /* grid-template-columns: 280px 1fr; */
     gap: 15px;
     width: 100%;
     box-sizing: border-box;
@@ -160,14 +237,125 @@ tr.sub-row td:first-child { padding-left: 30px; color: var(--text-muted); }
     overflow: hidden; /* Предотвращает внутреннее распирание инпутами */
 }
 
+/* --- ДИНАМИЧЕСКАЯ ПЛИТОЧНАЯ СЕТКА ДЛЯ ПК И ПЛАНШЕТОВ --- */
 .analytics-main {
     width: 100%;
-    min-width: 0; /* Важнейшее свойство: разрешает грид-элементу сжиматься до размеров экрана */
+    box-sizing: border-box;
+    padding-bottom: 100px; /* Защита от перекрытия нижней панелью */
+}
+
+/* Воображаемая сетка: 12-колоночный адаптивный грид */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+    width: 100%;
     box-sizing: border-box;
 }
 
-/* Экраны планшетов и мобильных (сужаем до одной колонки) */
+/* Базовый интерактивный виджет панели */
+.dashboard-widget-card {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+    transition: box-shadow 0.2s ease;
+    max-width: 100%; /* ЖЕСТКАЯ ЗАЩИТА: запрещает карточке быть шире экрана телефона */
+    overflow: hidden; /* Обрезает любые вылезающие подблоки */
+}
+
+/* Кастомизированная шапка виджета с инструментами управления */
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--border);
+}
+
+.widget-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Панель кнопок изменения размера и порядка */
+.widget-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-widget-action {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 0.15s;
+}
+.btn-widget-action:hover {
+    background: var(--border);
+    color: var(--text);
+}
+.btn-widget-action.delete:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* Внутренний контейнер под графики и таблицы внутри виджета */
+.widget-body {
+  flex: 1;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+.widget-body canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+/* --- АДАПТИВНОСТЬ ПОД МОБИЛЬНЫЕ УСТРОЙСТВА --- */
 @media (max-width: 900px) {
+    /* На телефонах воображаемая сетка превращается в простую ленту на всю ширину */
+    .dashboard-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .dashboard-widget-card {
+        grid-column: span 12 !important;
+        width: 100% !important;
+        max-width: 100% !important; /* Принудительно сужаем до ширины экрана смартфона */
+        height: 280px !important; /* Фиксированная идеальная высота для графиков на мобильных */
+        box-sizing: border-box !important;
+    }
+    .widget-controls {
+        /* Скрываем кнопки изменения сетки на телефонах, чтобы не загромождать интерфейс */
+        display: none;
+    }
+
     .analytics-layout {
         grid-template-columns: 1fr; /* Конструктор встает НАД таблицами и графиками */
         width: 100%;
@@ -196,29 +384,137 @@ tr.sub-row td:first-child { padding-left: 30px; color: var(--text-muted); }
 
 
 
-@media (min-width: 901px) {
-    html, body {
-        overflow-x: visible; /* На ПК возвращаем стандартное поведение без багов */
-    }
-    .app-container {
-        overflow-x: visible;
-    }
-    /* На компьютере нам не нужна мобильная лента в 300%, отключаем сдвиги */
-    .swipe-zone {
-        width: 100% !important;
-        transform: none !important; /* Убираем сдвиг влево/вправо */
-        display: block; /* Превращаем в обычный контейнер */
-    }
 
-    /* Показываем только ту вкладку, которая активна в данный момент, остальные скрываем */
-    .tab-content {
-        width: 100% !important;
-        display: none;
+
+/* --- СВОРАЧИВАЕМЫЕ БЛОКИ-АККОРДЕОНЫ ДЛЯ АНАЛИТИКИ --- */
+/* --- СТРОГАЯ ФИКСАЦИЯ ПАНЕЛИ В ОДНУ ЛИНИЮ 50/50 --- */
+.analytics-controls {
+    /* По умолчанию для смартфонов используем sticky, так как fixed ломается из-за свайпов transform */
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    bottom: 0 !important;
+
+    width: 100% !important;
+    max-width: 600px !important;
+    margin: 20px auto 0 auto !important; /* Центрируем плашку по горизонтали */
+    background: var(--card) !important;
+
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom)) 12px !important;
+
+    box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.15) !important;
+    border-radius: 16px 16px 0 0 !important;
+    border: 1px solid var(--border) !important;
+    border-bottom: none !important;
+    z-index: 9999 !important;
+    box-sizing: border-box !important;
+}
+.tab-content:not(.active) .analytics-controls {
+    display: none !important;
+}
+
+/* Карточки кнопок — делят нижнюю полоску СТРОГО ПОРОВНУ (50% на 50%) */
+/* --- СЖАТИЕ РОДИТЕЛЬСКИХ ПЛАШЕК ДЛЯ КНОПОК --- */
+.accordion-card {
+    flex: 1 1 50% !important;
+    width: 50% !important;
+    max-width: 50% !important;
+    background: var(--bg) !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--border) !important;
+    /* ИСПРАВЛЕНО: Убираем position: relative, чтобы всплывающее окно
+       ориентировалось на всю нижнюю панель, а не на узкую 50% кнопку */
+    position: static !important;
+    box-sizing: border-box !important;
+}
+
+/* Сама кнопка внутри плашки (остается без изменений) */
+.accordion-trigger {
+    width: 100% !important;
+    height: 42px !important;
+    padding: 0 4px !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    cursor: pointer !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--text) !important;
+    /* white-space: nowrap !important; */
+}
+
+/* --- ИСПРАВЛЕННОЕ ПОЛНОШИРИННОЕ ВСПЛЫВАЮЩЕЕ МЕНЮ --- */
+.accordion-content {
+    position: absolute !important;
+    bottom: 54px !important;
+    left: 3% !important;
+    width: 94% !important;
+    max-height: 0;
+    opacity: 0;
+    padding: 0 16px;
+    overflow: hidden;
+    background: var(--card) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.2) !important;
+    border: 1px solid var(--border) !important;
+    transition: max-height 0.22s ease-out, opacity 0.2s ease, padding 0.2s ease;
+    box-sizing: border-box !important;
+    z-index: 10000 !important;
+}
+.accordion-content.open {
+    max-height: 380px !important;
+    opacity: 1 !important;
+    padding: 16px !important;
+    overflow-y: auto !important;
+}
+
+/* Возвращаем комфортный широкий размер инпутов внутри развернутого меню */
+.accordion-content .form-grid, .accordion-content .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+.accordion-content select, .accordion-content input {
+    font-size: 14px !important;
+    padding: 10px !important;
+    height: 42px !important; /* Крупные touch-размеры для удобного клика */
+}
+
+/* Сброс старых костылей для правого бортика */
+.accordion-card:last-child .accordion-content {
+    left: 3% !important;
+    right: auto !important;
+}
+
+
+/* Адаптивный сброс: гарантируем, что на мобильных медиа-запросы не развернут панель обратно в столбец */
+@media (max-width: 900px) {
+    .analytics-layout {
+        grid-template-columns: 1fr !important;
     }
-    .tab-content.active {
-        display: block;
+    /* Защита: отменяем старое поведение вертикального стека */
+    .analytics-controls {
+        display: flex !important;
+        flex-direction: row !important;
     }
 }
+
+/* На случай сверхмаленьких экранов телефонов (например, старых iPhone SE) */
+@media (max-width: 360px) {
+    .accordion-trigger {
+        font-size: 10.5px !important;
+    }
+}
+
+
 
 
 /* Оверлей экрана авторизации */
@@ -398,3 +694,48 @@ tr.sub-row td:first-child { padding-left: 30px; color: var(--text-muted); }
     .btn-delete-item:hover {
         color: var(--danger);
     }
+
+
+
+@media (min-width: 901px) {
+    html, body, .app-container {
+        overflow-x: visible !important;
+        width: 100% !important;
+    }
+
+    /* На компьютере нам НЕ нужна мобильная катающаяся лента.
+       Мы аннулируем 300% ширины и полностью отключаем любые transform-сдвиги JS */
+    .swipe-zone {
+        width: 100% !important;
+        transform: none !important; /* Полностью блокирует translateX(-33.333%), убирая баг */
+        display: block !important;
+    }
+
+    /* Возвращаем классическое поведение вкладок для мониторов компьютера */
+    .tab-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: none !important; /* На ПК неактивные вкладки просто скрываем */
+    }
+
+    /* Показываем только ту вкладку, которая активна прямо сейчас */
+    .tab-content.active {
+        display: block !important;
+    }
+
+    /* 12-колоночная плиточная сетка на мониторе компьютера */
+    .dashboard-grid {
+        display: grid !important;
+        grid-template-columns: repeat(12, 1fr) !important;
+        gap: 20px !important;
+        width: 100% !important;
+    }
+    .analytics-controls {
+        /* На ПК свайпы отключены, поэтому возвращаем абсолютно надежный fixed по центру экрана */
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        margin-top: 0 !important;
+    }
+}
