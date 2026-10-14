@@ -555,17 +555,30 @@ function activeTabByIndex(index) {
 }
 
 function initSwipeGestures() {
-  const container = document.getElementById('swipe-container');
-  let startX = 0;
-  container.addEventListener('touchstart', (e) => startX = e.changedTouches.pageX, false);
-  container.addEventListener('touchend', (e) => {
-      let diff = startX - e.changedTouches.pageX;
-      if (Math.abs(diff) > 70) {
-          if (diff > 0) activeTabByIndex(activeTabIdx + 1);
-          else activeTabByIndex(activeTabIdx - 1);
-      }
-  }, false);
+    const container = document.getElementById('swipe-container');
+    let startX = 0;
+
+    container.addEventListener('touchstart', (e) => {
+        startX = e.changedTouches[0].pageX;
+    }, false);
+
+    container.addEventListener('touchend', (e) => {
+        let endX = e.changedTouches[0].pageX;
+        let diff = startX - endX;
+
+        // Листаем, только если свайп был достаточно размашистым (более 70px)
+        if (Math.abs(diff) > 70) {
+            if (diff > 0) {
+                // Свайп влево -> идем к следующему табу
+                activeTabByIndex(activeTabIdx + 1);
+            } else {
+                // Свайп вправо -> возвращаемся к предыдущему табу
+                activeTabByIndex(activeTabIdx - 1);
+            }
+        }
+    }, false);
 }
+
 
 function resetForm() {
   document.getElementById('asset-form').reset(); document.getElementById('edit-index').value = "";

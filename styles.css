@@ -13,7 +13,19 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { background: var(--bg); color: var(--text); padding: 10px; font-size: 15px; }
 
-.app-container { max-width: 1400px; margin: 0 auto; }
+html, body {
+    max-width: 100%;
+    overflow-x: hidden; /* Жестко блокирует появление боковой прокрутки сайта */
+    position: relative;
+}
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    overflow-x: hidden; /* Изолирует содержимое приложения внутри контейнера */
+}
+
+
 
 header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin-bottom: 15px; }
 h1 { font-size: 20px; font-weight: 700; }
@@ -26,10 +38,10 @@ h1 { font-size: 20px; font-weight: 700; }
 
 /* Зона свайпов */
 .swipe-zone {
-  display: flex;
-  width: 300%;
-  transition: transform 0.3s ease-out;
-  align-items: flex-start;
+    display: flex;
+    width: 300%;
+    transition: transform 0.3s ease-out;
+    align-items: flex-start;
 }
 .tab-content { width: 33.333%; padding: 0 5px; display: none; }
 .tab-content.active { display: block; }
@@ -82,6 +94,81 @@ tr.sub-row td:first-child { padding-left: 30px; color: var(--text-muted); }
     .card { padding: 12px; }
     th, td { padding: 8px; font-size: 13px; }
     .tab-btn { padding: 8px 4px; font-size: 13px; }
+}
+
+/* --- АДАПТИВНЫЙ МАКЕТ АНАЛИТИКИ (Исправление вылетов) --- */
+.analytics-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pivot-sidebar.card {
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden; /* Предотвращает внутреннее распирание инпутами */
+}
+
+.analytics-main {
+    width: 100%;
+    min-width: 0; /* Важнейшее свойство: разрешает грид-элементу сжиматься до размеров экрана */
+    box-sizing: border-box;
+}
+
+/* Экраны планшетов и мобильных (сужаем до одной колонки) */
+@media (max-width: 900px) {
+    .analytics-layout {
+        grid-template-columns: 1fr; /* Конструктор встает НАД таблицами и графиками */
+        width: 100%;
+    }
+
+    /* Делаем селекторы внутри конструктора более удобными на мобильных */
+    .pivot-sidebar .form-group {
+        margin-bottom: 12px;
+    }
+
+    .pivot-sidebar select {
+        height: 42px; /* Удобный touch-размер */
+        font-size: 15px;
+    }
+}
+
+/* Дополнительное исправление для очень маленьких экранов телефонов */
+@media (max-width: 480px) {
+    .analytics-layout {
+        gap: 10px;
+    }
+    .pivot-sidebar.card {
+        padding: 12px;
+    }
+}
+
+
+
+@media (min-width: 901px) {
+    html, body {
+        overflow-x: visible; /* На ПК возвращаем стандартное поведение без багов */
+    }
+    .app-container {
+        overflow-x: visible;
+    }
+    /* На компьютере нам не нужна мобильная лента в 300%, отключаем сдвиги */
+    .swipe-zone {
+        width: 100% !important;
+        transform: none !important; /* Убираем сдвиг влево/вправо */
+        display: block; /* Превращаем в обычный контейнер */
+    }
+
+    /* Показываем только ту вкладку, которая активна в данный момент, остальные скрываем */
+    .tab-content {
+        width: 100% !important;
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
 }
 
 
