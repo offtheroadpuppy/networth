@@ -25,7 +25,12 @@ h1 { font-size: 20px; font-weight: 700; }
 .tab-btn.active { background: var(--primary); color: white; }
 
 /* Зона свайпов */
-.swipe-zone { display: flex; width: 300%; transition: transform 0.3s ease-out; align-items: flex-start; }
+.swipe-zone {
+  display: flex;
+  width: 300%;
+  transition: transform 0.3s ease-out;
+  align-items: flex-start;
+}
 .tab-content { width: 33.333%; padding: 0 5px; display: none; }
 .tab-content.active { display: block; }
 
@@ -199,3 +204,61 @@ tr.sub-row td:first-child { padding-left: 30px; color: var(--text-muted); }
         background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px;
     }
     .btn-delete-chart:hover { color: var(--danger); }
+
+
+
+    /* --- СТИЛИ ДЛЯ ИНТЕРАКТИВНЫХ СПРАВОЧНИКОВ --- */
+    .directory-block {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border);
+    }
+    .directory-block h4 {
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: var(--text);
+    }
+    .inline-add-form {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    .inline-add-form input, .inline-add-form select {
+        flex: 1;
+        height: 38px;
+        padding: 6px 12px;
+    }
+    .inline-add-form .btn {
+        height: 38px;
+        padding: 0 14px;
+    }
+    .directory-list {
+        list-style: none;
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #f8fafc;
+    }
+    .directory-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+    .directory-list li:last-child {
+        border-bottom: none;
+    }
+    .btn-delete-item {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 14px;
+        padding: 2px 6px;
+    }
+    .btn-delete-item:hover {
+        color: var(--danger);
+    }

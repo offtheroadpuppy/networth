@@ -189,29 +189,48 @@
         <section id="settings-tab" class="tab-content">
             <div class="settings-grid">
                 <div class="card">
-                    <h3>Справочники</h3>
-                    <div class="form-group">
-                        <label>Базовая валюта приложения:</label>
-                        <select id="set-base-currency"></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Типы активов (через запятую):</label>
-                        <textarea id="set-types" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Организации (через запятую):</label>
-                        <textarea id="set-orgs" rows="3"></textarea>
-                    </div>
-                    <button class="btn btn-primary" id="save-directories-btn">Сохранить справочники</button>
+                  <h3>Справочники управления</h3>
+
+                  <!-- Базовая валюта -->
+                  <div class="form-group" style="margin-bottom: 20px;">
+                      <label>Базовая валюта приложения (основной баланс):</label>
+                      <select id="set-base-currency" onchange="changeBaseCurrency(this.value)"></select>
+                  </div>
+
+                  <!-- Управление Валютами -->
+                  <div class="directory-block">
+                      <h4>Добавить новую валюту:</h4>
+                      <div class="inline-add-form">
+                          <select id="new-currency-select"></select>
+                          <button type="button" class="btn btn-success btn-sm" id="add-currency-btn">➕</button>
+                      </div>
+                      <ul class="directory-list" id="list-currencies"></ul>
+                  </div>
+
+                  <!-- Управление Типами Активов -->
+                  <div class="directory-block">
+                      <h4>Типы активов:</h4>
+                      <div class="inline-add-form">
+                          <input type="text" id="new-type-input" placeholder="Например: Недвижимость, Авто">
+                          <button type="button" class="btn btn-primary btn-sm" id="add-type-btn">➕</button>
+                      </div>
+                      <ul class="directory-list" id="list-types"></ul>
+                  </div>
+
+                  <!-- Управление Организациями -->
+                  <div class="directory-block">
+                      <h4>Организации / Места хранения:</h4>
+                      <div class="inline-add-form">
+                          <input type="text" id="new-org-input" placeholder="Например: ВТБ, Ledger">
+                          <button type="button" class="btn btn-primary btn-sm" id="add-org-btn">➕</button>
+                      </div>
+                      <ul class="directory-list" id="list-orgs"></ul>
+                  </div>
                 </div>
+
 
                 <div class="card">
                     <h3>Курсы валют</h3>
-                    <div class="rate-mode-selector">
-                        <label class="switch-label">
-                            <input type="checkbox" id="rate-auto-mode" checked> Авто-курс онлайн (-1%)
-                        </label>
-                    </div>
                     <div class="rate-mode-selector">
                         <label class="switch-label">
                             <input type="checkbox" id="rate-auto-mode" checked> Авто-курс онлайн (-1%)

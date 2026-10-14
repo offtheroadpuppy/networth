@@ -5,6 +5,14 @@ window.updateStatus = function(text) {
 };
 
 // --- СОСТОЯНИЕ ПРИЛОЖЕНИЯ (State) ---
+// Полная база кодов и символов мировых валют для выбора
+const currencyDictionary = {
+    "RUB": "RUB (₽)", "USD": "USD ($)", "EUR": "EUR (€)", "CNY": "CNY (¥)",
+    "GBP": "GBP (£)", "JPY": "JPY (¥)", "CHF": "CHF (₣)", "CAD": "CAD ($)",
+    "AUD": "AUD ($)", "AED": "AED (د.إ)", "KZT": "KZT (₸)", "BYN": "BYN (Br)",
+    "AMD": "AMD (֏)", "GEL": "GEL (₾)", "TRY": "TRY (₺)", "THB": "THB (฿)"
+};
+
 let state = {
     userUid: null,
     finances: [],
@@ -284,7 +292,7 @@ async function fetchOnlineRates() {
     if (!state.rateAutoMode) return;
     try {
         const base = state.directories.baseCurrency;
-        const res = await fetch(`https://er-api.com{base}`);
+        const res = await fetch(`https://er-api.com/v6/latest/${base}`);
         const data = await res.json();
         if (data && data.rates) {
             state.directories.currencies.forEach(cur => {
@@ -393,22 +401,49 @@ function renderPivotReport() {
 }
 
 function renderSettingsPanel() {
-  document.getElementById('set-base-currency').value = state.directories.baseCurrency;
-  document.getElementById('set-types').value = state.directories.types.join(', ');
-  document.getElementById('set-orgs').value = state.directories.orgs.join(', ');
-  document.getElementById('rate-auto-mode').checked = state.rateAutoMode;
+    // 1. Селектор базовой валюты
+    const baseSelect = document.getElementById('set-base-currency');
+    baseSelect.innerHTML = state.directories.currencies.map(cur =>
+        `<option value="${cur}" ${cur === state.directories.baseCurrency ? 'selected' : ''}>${currencyDictionary[cur] || cur}</option>`
+    ).join('');
 
-  const manualContainer = document.getElementById('manual-rates-container');
-  manualContainer.innerHTML = '<h4>Курсы валют (в базовой):</h4>';
-  document.getElementById('save-rates-btn').style.display = state.rateAutoMode ? 'none' : 'block';
+    // 2. Список валют для добавления (исключая уже добавленные)
+    const newCurSelect = document.getElementById('new-currency-select');
+    newCurSelect.innerHTML = Object.keys(currencyDictionary)
+        .filter(code => !state.directories.currencies.includes(code))
+        .map(code => `<option value="${code}">${currencyDictionary[code]}</option>`).join('');
 
-  state.directories.currencies.forEach(cur => {
-      if (cur === state.directories.baseCurrency) return;
-      const div = document.createElement('div'); div.className = 'form-group';
-      div.innerHTML = `<label>${cur}:</label><input type="number" step="any" class="manual-rate-input" data-cur="${cur}" value="${state.rates[cur] || 0}" ${state.rateAutoMode ? 'disabled' : ''}>`;
-      manualContainer.appendChild(div);
-  });
+    // 3. Отрисовка списков по одному элементу
+    const renderList = (elementId, items, isCurrency = false) => {
+        const ul = document.getElementById(elementId);
+        ul.innerHTML = items.map((item, idx) => `
+            <li>
+                <span>${isCurrency ? (currencyDictionary[item] || item) : item}</span>
+                ${item === state.directories.baseCurrency ? '<small style="color:var(--success);">базовая</small>' : `
+                    <button class="btn-delete-item" onclick="deleteDirectoryItem('\({elementId}',\){idx})">❌</button>
+                `}
+            </li>
+        `).join('');
+    };
+
+    renderList('list-currencies', state.directories.currencies, true);
+    renderList('list-types', state.directories.types);
+    renderList('list-orgs', state.directories.orgs);
+
+    // 4. Отрисовка полей курсов валют
+    const manualContainer = document.getElementById('manual-rates-container');
+    manualContainer.innerHTML = '<h4>Курсы валют (в базовой):</h4>';
+    document.getElementById('save-rates-btn').style.display = state.rateAutoMode ? 'none' : 'block';
+    document.getElementById('rate-auto-mode').checked = state.rateAutoMode;
+
+    state.directories.currencies.forEach(cur => {
+        if (cur === state.directories.baseCurrency) return;
+        const div = document.createElement('div'); div.className = 'form-group';
+        div.innerHTML = `<label>${cur}:</label><input type="number" step="any" class="manual-rate-input" data-cur="${cur}" value="${state.rates[cur] || 0}" ${state.rateAutoMode ? 'disabled' : ''}>`;
+        manualContainer.appendChild(div);
+    });
 }
+
 
 function initDOMListeners() {
   document.getElementById('asset-form').addEventListener('submit', async (e) => {
@@ -441,13 +476,13 @@ function initDOMListeners() {
   document.getElementById('pivot-row-2').addEventListener('change', renderPivotReport);
   document.getElementById('pivot-filter-date').addEventListener('change', renderPivotReport);
 
-  document.getElementById('save-directories-btn').addEventListener('click', async () => {
-      state.directories.baseCurrency = document.getElementById('set-base-currency').value;
-      state.directories.types = document.getElementById('set-types').value.split(',').map(s => s.trim()).filter(Boolean);
-      state.directories.orgs = document.getElementById('set-orgs').value.split(',').map(s => s.trim()).filter(Boolean);
-      localStorage.setItem('fin_dirs', JSON.stringify(state.directories));
-      await fetchOnlineRates(); await saveToFirebase(); renderAll();
-  });
+  // document.getElementById('save-directories-btn').addEventListener('click', async () => {
+  //     state.directories.baseCurrency = document.getElementById('set-base-currency').value;
+  //     state.directories.types = document.getElementById('set-types').value.split(',').map(s => s.trim()).filter(Boolean);
+  //     state.directories.orgs = document.getElementById('set-orgs').value.split(',').map(s => s.trim()).filter(Boolean);
+  //     localStorage.setItem('fin_dirs', JSON.stringify(state.directories));
+  //     await fetchOnlineRates(); await saveToFirebase(); renderAll();
+  // });
 
   document.getElementById('rate-auto-mode').addEventListener('change', async (e) => {
       state.rateAutoMode = e.target.checked;
@@ -467,6 +502,45 @@ function initDOMListeners() {
   document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
       btn.addEventListener('click', () => activeTabByIndex(idx));
   });
+
+  // Добавление Валюты по одной
+  document.getElementById('add-currency-btn').addEventListener('click', async () => {
+      const select = document.getElementById('new-currency-select');
+      if (select.value && !state.directories.currencies.includes(select.value)) {
+          state.directories.currencies.push(select.value);
+          localStorage.setItem('fin_dirs', JSON.stringify(state.directories));
+          await fetchOnlineRates();
+          await saveToFirebase();
+          renderAll();
+      }
+  });
+
+  // Добавление Типа актива по одному
+  document.getElementById('add-type-btn').addEventListener('click', async () => {
+      const input = document.getElementById('new-type-input');
+      const val = input.value.trim();
+      if (val && !state.directories.types.includes(val)) {
+          state.directories.types.push(val);
+          input.value = '';
+          localStorage.setItem('fin_dirs', JSON.stringify(state.directories));
+          await saveToFirebase();
+          renderAll();
+      }
+  });
+
+  // Добавление Организации по одной
+  document.getElementById('add-org-btn').addEventListener('click', async () => {
+      const input = document.getElementById('new-org-input');
+      const val = input.value.trim();
+      if (val && !state.directories.orgs.includes(val)) {
+          state.directories.orgs.push(val);
+          input.value = '';
+          localStorage.setItem('fin_dirs', JSON.stringify(state.directories));
+          await saveToFirebase();
+          renderAll();
+      }
+  });
+
 }
 
 const tabIds = ['data-tab', 'pivot-tab', 'settings-tab'];
@@ -476,7 +550,7 @@ function activeTabByIndex(index) {
   activeTabIdx = index;
   document.querySelectorAll('.tab-btn').forEach((btn, idx) => btn.classList.toggle('active', idx === index));
   document.querySelectorAll('.tab-content').forEach((content, idx) => content.classList.toggle('active', idx === index));
-  document.getElementById('swipe-container').style.transform = `translateX(-${index * 33.333}%)`;
+  // document.getElementById('swipe-container').style.transform = `translateX(-${index * 33.333}%)`;
   if (tabIds[index] === 'pivot-tab') { renderPivotReport(); renderDashboardCharts(); }
 }
 
@@ -520,3 +594,34 @@ function exportToCSV() {
   link.setAttribute("download", `export_${new Date().toISOString().split('T')[0]}.csv`);
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
+
+
+// Удаление элемента из списка справочника
+window.deleteDirectoryItem = async function(listId, index) {
+    if (!confirm('Вы уверены, что хотите удалить этот элемент из списков настроек?')) return;
+
+    if (listId === 'list-currencies') {
+        const cur = state.directories.currencies[index];
+        if (cur === state.directories.baseCurrency) return alert('Нельзя удалить базовую валюту!');
+        state.directories.currencies.splice(index, 1);
+        delete state.rates[cur];
+    } else if (listId === 'list-types') {
+        state.directories.types.splice(index, 1);
+    } else if (listId === 'list-orgs') {
+        state.directories.orgs.splice(index, 1);
+    }
+
+    localStorage.setItem('fin_dirs', JSON.stringify(state.directories));
+    await saveToFirebase();
+    renderAll();
+};
+
+// Смена базовой валюты приложения
+window.changeBaseCurrency = async function(newBase) {
+    state.directories.baseCurrency = newBase;
+    localStorage.setItem('fin_dirs', JSON.stringify(state.directories));
+    updateStatus('Пересчет курсов...');
+    await fetchOnlineRates();
+    await saveToFirebase();
+    renderAll();
+};
