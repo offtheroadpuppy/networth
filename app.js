@@ -1,3 +1,9 @@
+// --- ИНИЦИАЛИЗАЦИЯ ИНДИКАТОРА СТАТУСА ---
+window.updateStatus = function(text) {
+    const el = document.getElementById('sync-status');
+    if (el) el.innerText = text;
+};
+
 // --- СОСТОЯНИЕ ПРИЛОЖЕНИЯ (State) ---
 let state = {
     userUid: null,

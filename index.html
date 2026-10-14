@@ -24,10 +24,6 @@
     <title>Личный Капитал PRO</title>
     <link rel="stylesheet" href="styles.css">
     <script src="chart.umd.js"></script> <!-- FROM:  https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js -->
-    <!-- Firebase SDK Compat v9+ -->
-    <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-analytics.js"></script>
-    <!-- <script src="https://gstatic.com"></script> -->
 </head>
 <body>
 
@@ -249,8 +245,15 @@
     </div>
 </div>
 
+<!-- Firebase SDK Compat v9+ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js"></script> -->
+<!-- <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-analytics.js"></script> -->
 <!-- Подключаем скрипты -->
-<script type="module" src="firebase-config.js" defer></script>
-<script type="module" src="app.js" defer></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
